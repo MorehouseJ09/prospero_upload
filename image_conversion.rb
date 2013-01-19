@@ -1,6 +1,10 @@
 # this module is responsible for the conversion of images based on an input directory.
 # will recursively find all of the images inside of it and will then move forward and resize / reposition all of those
 
+require 'pathname'
+require 'RMagick'
+
+
 module Image_conversion
 
 	class Get_files
@@ -31,16 +35,67 @@ module Image_conversion
 
 		def initialize(directory)
 
-			puts self.class.get_files directory
+			@images = self.get_images directory
 
-
-
+			# rename_images
+			convert_images
 
 		end
 
+		def get_images(directory) 
+
+			# responsible for grabbing the images and parsing to ensure that they are only of the proepr types
+			all_images = self.class.get_files directory
+
+			images = Array.new
+
+			# now grab only the valid images
+			all_images.each do |file|
+
+				extension = file.split(".")[-1]
+
+				images << file if @@image_extensions.include? extension
+
+			end
+
+			return images
+		end
+
+		def rename_images
+
+			counter = 0
+			new_images = Array.new
+
+			@images.each do |file|
 
 
+				name = File.join Pathname.new(file).dirname, "#{counter}.png"
+				File.rename file, name
 
+				# 
+				new_images << name
+				counter += 1
+
+			end
+
+			@images = new_images
+
+		end
+
+		def convert_images 
+
+			@images.each do |file|
+
+				temp = Magick::Image.read(file).first
+				temp.format = "PNG"
+				temp.resize_to_fill(1200, 1200)
+				temp.write "#{file}_new"
+
+				puts "#{file} converted"
+
+			end
+
+		end
 	end
 
 end
