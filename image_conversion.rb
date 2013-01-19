@@ -1,27 +1,46 @@
 # this module is responsible for the conversion of images based on an input directory.
 # will recursively find all of the images inside of it and will then move forward and resize / reposition all of those
+
 module Image_conversion
 
 	class Get_files
 
-		# image_extensions = Array["jpg", "jpeg", "png", "gif"]
-		@@image_extensions = Array[1, 2, 54, 5, 20, 43]
+
+		def self.get_files directory 
+
+			files = Array.new
+
+			Dir.open(directory).each do | file | 
+
+				# don't want to add these!
+				next if file == "." || file == ".."
+
+				# add the file to the list if it is a valid file and not a directory!
+				files << File.join(directory, file) if File.exist? File.join directory, file and not File.directory? File.join directory, file
+
+				# check if the file is a directory -- if so we want to grab the element and then recursively grab its contents
+				files += self.get_files(File.join directory, file) if File.directory? File.join directory, file
+
+			end
+
+			return files
+
+		end
+
+		@@image_extensions = Array["jpg", "jpeg", "png", "gif"]
 
 		def initialize(directory)
 
-			test = @@image_extensions.select{|x| x % 2 == 0 }.collect{|x| x * 3}
-
-			puts test
-	
+			puts self.class.get_files directory
 
 
-		end
 
-		def test 
-
-			puts "HELLO WORLD"
 
 		end
+
+
+
+
 	end
 
 end
