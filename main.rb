@@ -11,9 +11,11 @@ require './image_conversion'
 
 def main
 
-		
 	test = Image_conversion::Get_files.new "/Users/MorehouseJ09/Desktop/test"
-	# test.test
+
+
+
+
 
 end
 

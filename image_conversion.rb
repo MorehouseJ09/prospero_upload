@@ -3,12 +3,11 @@
 
 require 'pathname'
 require 'RMagick'
-
+require 'thread'
 
 module Image_conversion
 
 	class Get_files
-
 
 		def self.get_files directory 
 
@@ -47,10 +46,12 @@ module Image_conversion
 			# responsible for grabbing the images and parsing to ensure that they are only of the proepr types
 			all_images = self.class.get_files directory
 
-			images = Array.new
+			images = Queue.new
 
 			# now grab only the valid images
-			all_images.each do |file|
+			all_images.size.times do
+
+				file = all_images.pop
 
 				extension = file.split(".")[-1]
 
@@ -68,34 +69,53 @@ module Image_conversion
 
 			@images.each do |file|
 
-
 				name = File.join Pathname.new(file).dirname, "#{counter}.png"
 				File.rename file, name
 
 				# 
 				new_images << name
 				counter += 1
-
 			end
 
 			@images = new_images
-
 		end
 
 		def convert_images 
 
-			@images.each do |file|
+			def worker 
 
-				temp = Magick::Image.read(file).first
-				temp.format = "PNG"
-				temp.resize_to_fill(1200, 1200)
-				temp.write "#{file}_new"
+				# responsible for converting the image
+				# will lock the global data and then see if there are any more of these images to work on
 
-				puts "#{file} converted"
+				puts "HELLO WORLD"
+
+				sleep 2
 
 			end
 
+			# start 5 threads that will run the same function
+			# each of functions need to put a lock on the shared data
+			# each of the threads then need to be joined
+
+			threads = Array.new
+
+			10.times do |i|
+
+				threads[i] = Thread.new {
+
+					worker
+					puts "Thread #{i}"
+				}
+
+			end
+
+			threads.each {|thread| thread.join}
+
+
+
+
 		end
+
 	end
 
 end
