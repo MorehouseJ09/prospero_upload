@@ -67,7 +67,9 @@ module Image_conversion
 			counter = 0
 			new_images = Array.new
 
-			@images.each do |file|
+			@images.size.times do
+
+				file = @images.pop
 
 				name = File.join Pathname.new(file).dirname, "#{counter}.png"
 				File.rename file, name
@@ -82,31 +84,32 @@ module Image_conversion
 
 		def convert_images 
 
-			def worker 
-
-				# responsible for converting the image
-				# will lock the global data and then see if there are any more of these images to work on
-
-				puts "HELLO WORLD"
-
-				sleep 2
-
-			end
-
-			# start 5 threads that will run the same function
-			# each of functions need to put a lock on the shared data
-			# each of the threads then need to be joined
-
+			mutex = Mutex.new #this is useful for ensuring that we can lock data and access to it
 			threads = Array.new
 
 			10.times do |i|
 
 				threads[i] = Thread.new {
 
-					worker
-					puts "Thread #{i}"
-				}
+					# lambda worker goes here
+					mutex.synchronize do
 
+						if @images.size > 0
+
+							file = @images.pop
+							puts file
+
+						else 
+							return #stop the thread function
+
+						end
+					end
+
+					# puts file
+					sleep 1
+
+					return 
+				}
 			end
 
 			threads.each {|thread| thread.join}
