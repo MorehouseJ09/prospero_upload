@@ -8,10 +8,13 @@
 # 	4.) Will then upload all of the images in that directory and will then do an upload for the thumbnail automatically
 
 require './image_conversion'
+require './image_filters'
+
+include Image_filters
 
 def main
 
-	test = Image_conversion::Get_files.new "/Users/MorehouseJ09/Desktop/prospero"
+	# test = Image_conversion::Get_files.new "/Users/MorehouseJ09/Desktop/prospero"
 
 
 

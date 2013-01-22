@@ -5,12 +5,15 @@ require 'pathname'
 require 'RMagick'
 require 'thread'
 
+include Magick
+
 module Image_conversion
 
 	class Get_files
 
 		def self.get_files directory 
 
+			@directory = directory
 			files = Array.new
 
 			Dir.open(directory).each do | file | 
@@ -85,45 +88,53 @@ module Image_conversion
 		def convert_images 
 
 			mutex = Mutex.new #this is useful for ensuring that we can lock data and access to it
-			threads = Array.new
+			threads = Array.new #array that holds threads!
 
+			# worker thread is responsible for working on the images that we want individually 
+			worker = lambda do
+
+				file = ""
+				# make sure that we are not corrupting images as we pop them off
+				mutex.synchronize do
+
+					# make sure there is an image to pop off
+					if @images.size > 0
+
+						file = @images.pop
+
+					else 
+						return #stop the thread function
+
+					end
+				end
+
+				# return recursively if we need it 
+				return worker.call
+			end #lambda
+
+
+			# create different threads
 			10.times do |i|
 
-				threads[i] = Thread.new {
+				threads[i] = Thread.new do
 
-					# lambda worker goes here
-					mutex.synchronize do
+					worker.call #call our worker lambda
 
-						if @images.size > 0
-
-							file = @images.pop
-							puts file
-
-						else 
-							return #stop the thread function
-
-						end
-					end
-
-					# puts file
-					sleep 1
-
-					return 
-				}
+				end
 			end
 
-			threads.each {|thread| thread.join}
 
+			# join all threads afterwards
+			threads.each do |thread|
 
+				thread.join
 
-
+			end
 		end
-
 	end
-
 end
 
-
+# exportable variables / methods
 Image_conversion.class #=> Test
 Image_conversion.constants #=> [:test]
 Image_conversion.instance_methods #=> [:tst]
